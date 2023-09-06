@@ -116,7 +116,7 @@ def login():
 def logout():
     """Handle logout of user and redirect to homepage."""
 
-    form =  CSRFForm()
+    form = CSRFForm()
 
     if form.validate_on_submit():
         flash("Successfully logged out.")
@@ -228,7 +228,10 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
 
 
 @app.post('/users/delete')
