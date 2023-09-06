@@ -6,7 +6,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Unauthorized
 
-from forms import UserAddForm, LoginForm, MessageForm, CSRFForm, UserEditForm
+from forms import UserAddForm, LoginForm, MessageForm, CSRFForm, UserEditForm 
 from models import db, connect_db, User, Message, DEFAULT_BIO, DEFAULT_LOCATION, DEFAULT_IMAGE_URL, DEFAULT_HEADER_IMAGE_URL
 
 load_dotenv()
@@ -231,12 +231,10 @@ def profile():
 
     user = User.query.get_or_404(g.user.id)
     form = UserEditForm(obj=user)
-    #FIXME: password included in the edit form need to take it out
 
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-
 
     if form.validate_on_submit():
         g.user.username = form.username.data
@@ -246,6 +244,8 @@ def profile():
         g.user.bio = form.bio.data or DEFAULT_BIO
 
         db.session.commit()
+
+        flash(f"Successfully Edited {g.user.username}")
         return redirect(f"/users/{g.user.id}")
     else:
         return render_template("users/edit.html",
@@ -343,8 +343,10 @@ def homepage():
     """
 
     if g.user:
+        users_following = [user.id for user in g.user.following] + [g.user.id]
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(users_following))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())

@@ -93,7 +93,6 @@ class User(db.Model):
 
     messages = db.relationship('Message', backref="user")
 
-    #FIXME: run queries for this when the time comes
     followers = db.relationship(
         "User",
         secondary="follows",

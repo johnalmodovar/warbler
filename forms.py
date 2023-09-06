@@ -1,7 +1,7 @@
 from flask import g, flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField
-from wtforms.validators import InputRequired, Email, Length, URL, Optional
+from wtforms.validators import InputRequired, Email, Length, URL, Optional, ValidationError
 
 from models import User
 
@@ -50,10 +50,6 @@ class LoginForm(FlaskForm):
     )
 
 
-def validate_password(form, field):
-        if not User.authenticate(g.user, field.data):
-            flash("Incorrect Password.", "danger")
-
 class UserEditForm(FlaskForm):
     """Form for editing user profile."""
 
@@ -82,10 +78,15 @@ class UserEditForm(FlaskForm):
         validators=[Optional()]
     )
 
-    password = StringField(
+    password = PasswordField(
         "Validate Password",
-        validators=[validate_password]
+        validators=[InputRequired()]
     )
+
+    def validate_password(form, field):
+        if not User.authenticate(g.user.username, field.data):
+            flash("Incorrect password")
+            raise ValidationError("Incorrect password") 
 
 
 class CSRFForm(FlaskForm):
