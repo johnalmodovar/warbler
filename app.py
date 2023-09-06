@@ -35,8 +35,8 @@ def add_user_to_g():
 
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
-        g.csrf_form = CSRFForm()
-
+        g.csrf_form = CSRFForm() #FIXME: add another before_request for g.csrf_form
+        #TODO: get rid of all form=g.csrf_form and instead go on templates to do => g.csrf_form.hidden_tag()
     else:
         g.user = None
 
@@ -125,9 +125,7 @@ def login():
 def logout():
     """Handle logout of user and redirect to homepage."""
 
-    form = CSRFForm()
-
-    if form.validate_on_submit():
+    if g.csrf_form.validate_on_submit():
         do_logout()
         flash("Successfully logged out.")
         return redirect("/")
@@ -207,7 +205,8 @@ def start_following(follow_id):
 
     Redirect to following page for the current for the current user.
     """
-
+    #FIXME: CSRF protection here
+    #FIXME: fix in line 229 goes here as well
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
@@ -225,11 +224,10 @@ def stop_following(follow_id):
 
     Redirect to following page for the current for the current user.
     """
-
-    if g.csrf_form.validate_on_submit():
-        if not g.user:
-            flash("Access unauthorized.", "danger")
-            return redirect("/")
+    #FIXME: check for if they're not the user OR if form does not validate
+    if not g.csrf_form.validate_on_submit() or not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
 
     followed_user = User.query.get_or_404(follow_id)
     g.user.following.remove(followed_user)
@@ -241,8 +239,8 @@ def stop_following(follow_id):
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
     """Update profile for current user."""
-
-    user = User.query.get_or_404(g.user.id)
+    #TODO: either use user or g.user for this NOT both.
+    user = User.query.get_or_404(g.user.id) #FIXME: no need to query just pull out g.user
     form = UserEditForm(obj=user)
 
     if not g.user:
