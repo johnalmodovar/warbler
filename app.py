@@ -6,12 +6,13 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Unauthorized
 
-from forms import UserAddForm, LoginForm, MessageForm, CSRFForm
-from models import db, connect_db, User, Message
+from forms import UserAddForm, LoginForm, MessageForm, CSRFForm, UserEditForm
+from models import db, connect_db, User, Message, DEFAULT_BIO, DEFAULT_LOCATION, DEFAULT_IMAGE_URL, DEFAULT_HEADER_IMAGE_URL
 
 load_dotenv()
 
 CURR_USER_KEY = "curr_user"
+
 
 app = Flask(__name__)
 
@@ -228,10 +229,29 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
+    user = User.query.get_or_404(g.user.id)
+    form = UserEditForm(obj=user)
+    #FIXME: password included in the edit form need to take it out
+
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
+
+
+    if form.validate_on_submit():
+        g.user.username = form.username.data
+        g.user.email = form.email.data
+        g.user.image_url = form.image_url.data or DEFAULT_IMAGE_URL
+        g.user.header_image_url = form.header_image_url.data or DEFAULT_HEADER_IMAGE_URL
+        g.user.bio = form.bio.data or DEFAULT_BIO
+
+        db.session.commit()
+        return redirect(f"/users/{g.user.id}")
+    else:
+        return render_template("users/edit.html",
+                               form=form,
+                               user=user)
+
 
 
 @app.post('/users/delete')
