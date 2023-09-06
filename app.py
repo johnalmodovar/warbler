@@ -6,7 +6,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Unauthorized
 
-from forms import UserAddForm, LoginForm, MessageForm, CSRFForm, UserEditForm 
+from forms import UserAddForm, LoginForm, MessageForm, CSRFForm, UserEditForm
 from models import db, connect_db, User, Message, DEFAULT_BIO, DEFAULT_LOCATION, DEFAULT_IMAGE_URL, DEFAULT_HEADER_IMAGE_URL
 
 load_dotenv()
@@ -35,6 +35,7 @@ def add_user_to_g():
 
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
+        g.csrf_form = CSRFForm()
 
     else:
         g.user = None
@@ -65,7 +66,7 @@ def signup():
     and re-present form.
     """
 
-    do_logout()
+    # do_logout()
 
     form = UserAddForm()
 
@@ -88,7 +89,10 @@ def signup():
         return redirect("/")
 
     else:
-        return render_template('users/signup.html', form=form)
+        if g.user:
+            return redirect("/")
+        else:
+            return render_template('users/signup.html', form=form)
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -110,7 +114,11 @@ def login():
 
         flash("Invalid credentials.", 'danger')
 
-    return render_template('users/login.html', form=form)
+    if g.user:
+        return redirect("/")
+
+    else:
+        return render_template('users/login.html', form=form)
 
 
 @app.post('/logout')
@@ -120,9 +128,9 @@ def logout():
     form = CSRFForm()
 
     if form.validate_on_submit():
+        do_logout()
         flash("Successfully logged out.")
-        do_logout(g.user)
-        return redirect("/login")
+        return redirect("/")
 
     else:
         raise Unauthorized()
@@ -149,7 +157,8 @@ def list_users():
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
 
-    return render_template('users/index.html', users=users)
+    return render_template('users/index.html', users=users,
+                           form=g.csrf_form)
 
 
 @app.get('/users/<int:user_id>')
@@ -162,7 +171,8 @@ def show_user(user_id):
 
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/show.html', user=user)
+    return render_template('users/show.html', user=user,
+                           form=g.csrf_form)
 
 
 @app.get('/users/<int:user_id>/following')
@@ -174,7 +184,8 @@ def show_following(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/following.html', user=user)
+    return render_template('users/following.html', user=user,
+                           form=g.csrf_form)
 
 
 @app.get('/users/<int:user_id>/followers')
@@ -186,7 +197,8 @@ def show_followers(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/followers.html', user=user)
+    return render_template('users/followers.html', user=user,
+                           form=g.csrf_form)
 
 
 @app.post('/users/follow/<int:follow_id>')
@@ -214,9 +226,10 @@ def stop_following(follow_id):
     Redirect to following page for the current for the current user.
     """
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+    if g.csrf_form.validate_on_submit():
+        if not g.user:
+            flash("Access unauthorized.", "danger")
+            return redirect("/")
 
     followed_user = User.query.get_or_404(follow_id)
     g.user.following.remove(followed_user)
@@ -245,7 +258,7 @@ def profile():
 
         db.session.commit()
 
-        flash(f"Successfully Edited {g.user.username}")
+        flash(f"Successfully Edited.", "success")
         return redirect(f"/users/{g.user.id}")
     else:
         return render_template("users/edit.html",
@@ -351,7 +364,7 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages)
+        return render_template('home.html', messages=messages, form=g.csrf_form)
 
     else:
         return render_template('home-anon.html')
