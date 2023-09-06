@@ -84,9 +84,10 @@ class UserEditForm(FlaskForm):
     )
 
     def validate_password(form, field):
+        """Validates password when trying to edit user profile."""
         if not User.authenticate(g.user.username, field.data):
-            flash("Incorrect password")
-            raise ValidationError("Incorrect password") 
+            # flash("Incorrect password")
+            raise ValidationError("Incorrect password")
 
 
 class CSRFForm(FlaskForm):
