@@ -17,6 +17,10 @@ DEFAULT_HEADER_IMAGE_URL = (
     "rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=for" +
     "mat&fit=crop&w=2070&q=80")
 
+DEFAULT_BIO=""
+
+DEFAULT_LOCATION=""
+
 
 class Follow(db.Model):
     """Connection of a follower <-> followed_user."""
@@ -73,13 +77,13 @@ class User(db.Model):
     bio = db.Column(
         db.Text,
         nullable=False,
-        default="",
+        default=DEFAULT_BIO,
     )
 
     location = db.Column(
         db.String(30),
         nullable=False,
-        default="",
+        default=DEFAULT_LOCATION,
     )
 
     password = db.Column(
