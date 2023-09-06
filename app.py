@@ -35,10 +35,14 @@ def add_user_to_g():
 
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
-        g.csrf_form = CSRFForm() #FIXME: add another before_request for g.csrf_form
-        #TODO: get rid of all form=g.csrf_form and instead go on templates to do => g.csrf_form.hidden_tag()
     else:
         g.user = None
+
+
+@app.before_request
+def add_csrf_to_g():
+    """Add csrf_form to Flask global for every request"""
+    g.csrf_form = CSRFForm()
 
 
 def do_login(user):
@@ -155,8 +159,7 @@ def list_users():
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
 
-    return render_template('users/index.html', users=users,
-                           form=g.csrf_form)
+    return render_template('users/index.html', users=users)
 
 
 @app.get('/users/<int:user_id>')
@@ -169,8 +172,7 @@ def show_user(user_id):
 
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/show.html', user=user,
-                           form=g.csrf_form)
+    return render_template('users/show.html', user=user)
 
 
 @app.get('/users/<int:user_id>/following')
@@ -182,8 +184,7 @@ def show_following(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/following.html', user=user,
-                           form=g.csrf_form)
+    return render_template('users/following.html', user=user)
 
 
 @app.get('/users/<int:user_id>/followers')
@@ -195,8 +196,7 @@ def show_followers(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/followers.html', user=user,
-                           form=g.csrf_form)
+    return render_template('users/followers.html', user=user)
 
 
 @app.post('/users/follow/<int:follow_id>')
@@ -205,9 +205,8 @@ def start_following(follow_id):
 
     Redirect to following page for the current for the current user.
     """
-    #FIXME: CSRF protection here
-    #FIXME: fix in line 229 goes here as well
-    if not g.user:
+
+    if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
@@ -224,7 +223,6 @@ def stop_following(follow_id):
 
     Redirect to following page for the current for the current user.
     """
-    #FIXME: check for if they're not the user OR if form does not validate
     if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
@@ -239,9 +237,8 @@ def stop_following(follow_id):
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
     """Update profile for current user."""
-    #TODO: either use user or g.user for this NOT both.
-    user = User.query.get_or_404(g.user.id) #FIXME: no need to query just pull out g.user
-    form = UserEditForm(obj=user)
+
+    form = UserEditForm(obj=g.user)
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -256,12 +253,12 @@ def profile():
 
         db.session.commit()
 
-        flash(f"Successfully Edited.", "success")
+        flash("Successfully Edited.", "success")
         return redirect(f"/users/{g.user.id}")
     else:
         return render_template("users/edit.html",
                                form=form,
-                               user=user)
+                               user=g.user)
 
 
 
@@ -272,7 +269,7 @@ def delete_user():
     Redirect to signup page.
     """
 
-    if not g.user:
+    if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
@@ -362,7 +359,7 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages, form=g.csrf_form)
+        return render_template('home.html', messages=messages)
 
     else:
         return render_template('home-anon.html')
