@@ -355,12 +355,16 @@ def like_message(likes_id):
     """Like a message for the currently logged-in user
 
     Redirect to current page user is on."""
-
     if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
     msg = Message.query.get_or_404(likes_id)
+
+    if msg.user.id == g.user.id:
+        flash("You cannot like your own warbler", "info")
+        return redirect("/")
+
     g.user.liked_messages.append(msg)
     db.session.commit()
 
@@ -382,8 +386,6 @@ def unlike_message(likes_id):
 
     return redirect(f"/users/{g.user.id}/likes")
 
-
-# @app.post('/users/stop-following/<int:follow_id>')
 
 ##############################################################################
 # Homepage and error pages
