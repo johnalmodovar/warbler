@@ -6,7 +6,7 @@
 
     {% for msg in user.liked_messages %}
     <li class="list-group-item">
-      <a href="/messages/{{ msg.id }}" class="message-link"/>
+      <a href="/messages/{{ msg.id }}" class="message-link" />
       <a href="/users/{{ msg.user.id }}">
         <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
       </a>
@@ -15,26 +15,23 @@
         <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
         <p>{{ msg.text }}</p>
         <!-- #TODO: conditional to check if user has liked this or not -->
-        {% if g.user.liked(msg) %}
-        <form method="POST"
-                  action="/users/unlike/{{ msg.id }}">
-                  {{ g.csrf_form.hidden_tag() }}
-              <button class="btn btn-primary btn-sm">
-                <i class="bi bi-star"></i>
-              </button>
+        {% if msg in g.user.liked_messages %}
+        <form method="POST" action="/users/unlike/{{ msg.id }}">
+          {{ g.csrf_form.hidden_tag() }}
+          <button class="btn btn-primary btn-sm">
+            <i class="bi bi-star"></i>
+          </button>
         </form>
-              {% else %}
-        <form method="POST"
-                  action="/users/like/{{ msg.id }}">
-                  {{ g.csrf_form.hidden_tag() }}
-              <button class="btn btn-primary btn-sm">
-                <i class="bi bi-star-fill"></i>
-              </button>
-        </form>
-        {% endif %}
+        {% else %}
+        <form method="POST" action="/users/like/{{ msg.id }}">
+          {{ g.csrf_form.hidden_tag() }}
+          <button class="btn btn-primary btn-sm">
+            <i class="bi bi-star-fill"></i>
+          </button>
+          {% endif %}
       </div>
     </li>
-  {% endfor %}
+    {% endfor %}
 
   </div>
 </div>
