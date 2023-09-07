@@ -350,11 +350,11 @@ def show_likes(user_id):
     return render_template("users/likes.html", user=user)
 
 
-@app.post('/users/likes/<int:likes_id>')
+@app.post('/users/like/<int:likes_id>')
 def like_message(likes_id):
     """Like a message for the currently logged-in user
 
-    Redirect to current page user is on"""
+    Redirect to current page user is on."""
 
     if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
@@ -366,7 +366,21 @@ def like_message(likes_id):
 
     return redirect(f"/users/{g.user.id}/likes")
 
-# @app.post('/messages/like/<int:>')
+@app.post('/users/unlike/<int:likes_id>')
+def unlike_message(like_id):
+    """Unlike a message for currently logged-in user
+
+    Redirect to current page user is on."""
+
+    if not g.csrf_form.validate_on_submit() or not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    msg = Message.query.get_or_404(like_id)
+    g.user.liked_messages.remove(msg)
+    db.session.commit()
+
+    return redirect(f"/users/{g.user.id}/likes")
 
 
 # @app.post('/users/stop-following/<int:follow_id>')
