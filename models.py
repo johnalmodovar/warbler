@@ -158,6 +158,13 @@ class User(db.Model):
             user for user in self.following if user == other_user]
         return len(found_user_list) == 1
 
+    def liked(self, message):
+        """Is this message liked by user?"""
+
+        messages_liked_list = [
+            message for message in self.liked_messages if message.liked_users.id == self.liked_messages.id
+            ]
+        return len(messages_liked_list) == 1
 
 class Message(db.Model):
     """An individual message ("warble")."""
@@ -191,15 +198,6 @@ class Message(db.Model):
         secondary="likes",
         backref="liked_messages",
     )
-
-    def is_liked_by(self, user):
-        """Is this message liked by user?"""
-
-        messages_liked_list = [
-            usr for usr in self.liked_users if self.liked_users.id == user.id
-            ]
-        return len(messages_liked_list) == 1
-
 
 
 class Like(db.Model):
