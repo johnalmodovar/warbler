@@ -367,7 +367,7 @@ def like_message(likes_id):
     return redirect(f"/users/{g.user.id}/likes")
 
 @app.post('/users/unlike/<int:likes_id>')
-def unlike_message(like_id):
+def unlike_message(likes_id):
     """Unlike a message for currently logged-in user
 
     Redirect to current page user is on."""
@@ -376,7 +376,7 @@ def unlike_message(like_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    msg = Message.query.get_or_404(like_id)
+    msg = Message.query.get_or_404(likes_id)
     g.user.liked_messages.remove(msg)
     db.session.commit()
 
