@@ -192,6 +192,14 @@ class Message(db.Model):
         backref="liked_messages",
     )
 
+    def is_liked(self, user):
+        """Is this message liked by user?"""
+
+        messages_liked_list = [
+            user for user in self.following if user == other_user]
+        return len(found_user_list) == 1
+
+
 
 class Like(db.Model):
     """Connection of a user <-> liked messages."""
@@ -209,7 +217,7 @@ class Like(db.Model):
         db.ForeignKey('messages.id', ondelete="cascade"),
         primary_key=True,
     )
-    
+
 
 def connect_db(app):
     """Connect this database to provided Flask app.
