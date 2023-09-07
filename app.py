@@ -350,7 +350,22 @@ def show_likes(user_id):
     return render_template("users/likes.html", user=user)
 
 
-# @app.get('/users/likes')
+@app.post('/users/likes/<int:likes_id>')
+def like_message(likes_id):
+    """Like a message for the currently logged-in user
+
+    Redirect to current page user is on"""
+
+    if not g.csrf_form.validate_on_submit() or not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    msg = Message.query.get_or_404(likes_id)
+    g.user.liked_messages.append(msg)
+    db.session.commit()
+
+    return redirect(f"/users/{g.user.id}/likes")
+
 # @app.post('/messages/like/<int:>')
 
 
