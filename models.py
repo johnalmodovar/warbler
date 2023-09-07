@@ -162,7 +162,7 @@ class User(db.Model):
         """Is this message liked by user?"""
 
         messages_liked_list = [
-            message for message in self.liked_messages if message.liked_users.id == self.liked_messages.id
+            msg for msg in self.liked_messages if message.liked_users.id == self.liked_messages.id
             ]
         return len(messages_liked_list) == 1
 
