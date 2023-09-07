@@ -186,18 +186,19 @@ class Message(db.Model):
         nullable=False,
     )
 
-    likes = db.relationship(
+    liked_users = db.relationship(
         "User",
         secondary="likes",
         backref="liked_messages",
     )
 
-    def is_liked(self, user):
+    def is_liked_by(self, user):
         """Is this message liked by user?"""
 
         messages_liked_list = [
-            user for user in self.following if user == other_user]
-        return len(found_user_list) == 1
+            usr for usr in self.liked_users if self.liked_users.id == user.id
+            ]
+        return len(messages_liked_list) == 1
 
 
 
