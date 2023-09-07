@@ -337,6 +337,24 @@ def delete_message(message_id):
 
     return redirect(f"/users/{g.user.id}")
 
+##############################################################################
+# Message like / unlike
+
+@app.get('/users/<int:user_id>/likes')
+def show_likes(user_id):
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+    return render_template("users/likes.html", user=user)
+
+
+# @app.get('/users/likes')
+# @app.post('/messages/like/<int:>')
+
+
+# @app.post('/users/stop-following/<int:follow_id>')
 
 ##############################################################################
 # Homepage and error pages
