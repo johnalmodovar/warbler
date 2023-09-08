@@ -98,6 +98,22 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
 
             self.assertIn("Access unauthorized", html)
 
+    def test_show_message(self):
+        """Test message show page"""
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.get(f"/messages/{self.m1_id}")
+
+            self.assertEqual(resp.status_code, 200)
+
+            html = resp.get_data(as_text=True)
+
+            self.assertIn("TEST SHOW MESSAGE", html)
+
+
+class MessageDeleteViewTestCase(MessageBaseViewTestCase):
     def test_delete_message(self):
         """Test functionality of message delete"""
         with self.client as c:
@@ -136,20 +152,8 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
 
             self.assertIn("Access unauthorized", html)
 
-    def test_show_message(self):
-        """Test message show page"""
-        with self.client as c:
-            with c.session_transaction() as sess:
-                sess[CURR_USER_KEY] = self.u1_id
 
-            resp = c.get(f"/messages/{self.m1_id}")
-
-            self.assertEqual(resp.status_code, 200)
-
-            html = resp.get_data(as_text=True)
-
-            self.assertIn("TEST SHOW MESSAGE", html)
-
+class MessageLikeViewTestCase(MessageBaseViewTestCase):
     def test_like_message(self):
         """Test liking a message functionality"""
         with self.client as c:
