@@ -15,17 +15,17 @@ from models import db, Message, User, Like
 # before we import our app, since that will have already
 # connected to the database
 
-os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
+os.environ["DATABASE_URL"] = "postgresql:///warbler_test"
 
 # Now we can import app
 
 from app import app, CURR_USER_KEY
 
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
 
 # This is a bit of hack, but don't use Flask DebugToolbar
 
-app.config['DEBUG_TB_HOSTS'] = ['dont-show-debug-toolbar']
+app.config["DEBUG_TB_HOSTS"] = ["dont-show-debug-toolbar"]
 
 # Create our tables (we do this here, so we only create the tables
 # once for all tests --- in each test, we'll delete the data
@@ -36,7 +36,7 @@ db.create_all()
 
 # Don't have WTForms use CSRF at all, since it's a pain to test
 
-app.config['WTF_CSRF_ENABLED'] = False
+app.config["WTF_CSRF_ENABLED"] = False
 
 
 class MessageBaseViewTestCase(TestCase):
@@ -68,7 +68,6 @@ class MessageBaseViewTestCase(TestCase):
 
         self.client = app.test_client()
 
-
     def tearDown(self):
         """Cleans up any database transactions"""
         db.session.rollback()
@@ -76,14 +75,11 @@ class MessageBaseViewTestCase(TestCase):
 
 class MessageAddViewTestCase(MessageBaseViewTestCase):
     def test_add_message(self):
-        # Since we need to change the session to mimic logging in,
-        # we need to use the changing-session trick:
+        """Test creating a new message"""
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u1_id
 
-            # Now, that session setting is saved, so we can have
-            # the rest of ours test
             resp = c.post("/messages/new", data={"text": "Hello"})
 
             self.assertEqual(resp.status_code, 302)
@@ -91,10 +87,11 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
             self.assertTrue(Message.query.filter_by(text="Hello").one())
 
     def test_add_message_auth(self):
-        """Test authorization on add message route"""
+        """Ensures that only logged in users can create a new message"""
         with self.client as c:
-
-            resp = c.post("/messages/new", data={"text": "Hello"}, follow_redirects=True)
+            resp = c.post(
+                "/messages/new", data={"text": "Hello"}, follow_redirects=True
+            )
 
             self.assertEqual(resp.status_code, 200)
             html = resp.get_data(as_text=True)
@@ -106,7 +103,7 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u1_id
-            
+
             resp = c.post(f"/messages/{self.m1_id}/delete")
 
             self.assertEqual(resp.status_code, 302)
@@ -118,14 +115,13 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u1_id
-            
+
             resp = c.post(f"/messages/{self.m1_id}/delete", follow_redirects=True)
             html = resp.get_data(as_text=True)
 
             self.assertEqual(resp.status_code, 200)
 
             self.assertIn("TEST REDIRECT DELETE", html)
-
 
     def test_delete_message_auth(self):
         """Ensures only message owner can delete message"""
@@ -140,13 +136,12 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
 
             self.assertIn("Access unauthorized", html)
 
-
     def test_show_message(self):
         """Test message show page"""
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u1_id
-            
+
             resp = c.get(f"/messages/{self.m1_id}")
 
             self.assertEqual(resp.status_code, 200)
@@ -155,26 +150,24 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
 
             self.assertIn("TEST SHOW MESSAGE", html)
 
-        
     def test_like_message(self):
         """Test liking a message functionality"""
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u2_id
-            
+
             resp = c.post(f"/users/like/{self.m2_id}")
 
             self.assertEqual(resp.status_code, 302)
 
             self.assertEqual(resp.location, f"/users/{self.u2_id}/likes")
 
-
     def test_like_redirect(self):
         """Test redirect after liking a message"""
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u2_id
-            
+
             resp = c.post(f"/users/like/{self.m2_id}", follow_redirects=True)
             html = resp.get_data(as_text=True)
 
@@ -182,26 +175,24 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
 
             self.assertIn("TEST REDIRECT LIKE MESSAGE", html)
 
-
     def test_unlike_message(self):
         """Test unlike functionality of message"""
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u2_id
-            
+
             resp = c.post(f"/users/unlike/{self.m1_id}")
 
             self.assertEqual(resp.status_code, 302)
 
             self.assertEqual(resp.location, f"/users/{self.u2_id}/likes")
 
-
     def test_unlike_redirect(self):
         """Test redirect of unliking a message"""
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u2_id
-            
+
             unlike_resp = c.post(f"/users/unlike/{self.m1_id}", follow_redirects=True)
             html = unlike_resp.get_data(as_text=True)
 
