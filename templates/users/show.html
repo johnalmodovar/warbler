@@ -13,18 +13,23 @@
         <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
         <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
         <p>{{ msg.text }}</p>
-        {% if msg in g.user.liked_messages %}
+        {% if msg in g.user.messages %}
+          <form method="POST"
+          action="/messages/{{ msg.id }}/delete">
+          <button class="btn btn-outline-danger z-3 position-relative">Delete</button>
+          </form>
+        {% elif msg in g.user.liked_messages %}
         <form method="POST" action="/users/unlike/{{ msg.id }}">
           {{ g.csrf_form.hidden_tag() }}
-          <button class="btn btn-primary btn-sm">
-            <i class="bi bi-star"></i>
+          <button class="btn btn-primary btn-sm z-3 position-relative">
+            <i class="bi bi-star-fill"></i>
           </button>
         </form>
         {% else %}
         <form method="POST" action="/users/like/{{ msg.id }}">
           {{ g.csrf_form.hidden_tag() }}
-          <button class="btn btn-primary btn-sm">
-            <i class="bi bi-star-fill"></i>
+          <button class="btn btn-primary btn-sm z-3 position-relative">
+            <i class="bi bi-star"></i>
           </button>
           {% endif %}
       </div>

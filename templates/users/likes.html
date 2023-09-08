@@ -3,10 +3,10 @@
 {% block user_details %}
 
     <div class="col-lg-6 col-md-8 col-sm-12">
-    <ul class="list-group" id="messages">
+    <ul class="list-group no-hover" id="messages">
     {% for msg in user.liked_messages %}
     <li class="list-group-item">
-      <a href="/messages/{{ msg.id }}" class="message-link" />
+      <a href="/messages/{{ msg.id }}" class="message-link"></a>
       <a href="/users/{{ msg.user.id }}">
         <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
       </a>
@@ -17,15 +17,15 @@
         {% if msg in g.user.liked_messages %}
         <form method="POST" action="/users/unlike/{{ msg.id }}">
           {{ g.csrf_form.hidden_tag() }}
-          <button class="btn btn-primary btn-sm">
-            <i class="bi bi-star"></i>
+          <button class="btn btn-primary btn-sm z-3 position-relative">
+            <i class="bi bi-star-fill"></i>
           </button>
         </form>
         {% else %}
         <form method="POST" action="/users/like/{{ msg.id }}">
           {{ g.csrf_form.hidden_tag() }}
-          <button class="btn btn-primary btn-sm">
-            <i class="bi bi-star-fill"></i>
+          <button class="btn btn-primary btn-sm z-3 position-relative">
+            <i class="bi bi-star"></i>
           </button>
           {% endif %}
       </div>
