@@ -276,7 +276,6 @@ def delete_user():
 
     Redirect to signup page.
     """
-    # TODO: delete in order + loop -> 1. likes, 2.warbles, 3. users
 
     if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
@@ -400,7 +399,6 @@ def unlike_message(likes_id):
     """Unlike a message for currently logged-in user
 
     Redirect to current page user is on."""
-    # TODO: impelement ^ (after tests) + test on 122
 
     if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
