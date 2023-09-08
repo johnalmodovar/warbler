@@ -384,7 +384,7 @@ def unlike_message(likes_id):
     """Unlike a message for currently logged-in user
 
     Redirect to current page user is on."""
-    #TODO: impelement ^ (after tests)
+    #TODO: impelement ^ (after tests) + test on 122
 
     if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
