@@ -48,6 +48,7 @@ class MessageBaseViewTestCase(TestCase):
 
         u2 = User.signup("u2", "u2@email.com", "password", None)
         u1 = User.signup("u1", "u1@email.com", "password", None)
+        db.session.add_all([u1, u2])
         db.session.flush()
 
         m1 = Message(text="m1-text", user_id=u1.id)
@@ -89,16 +90,16 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
 
             self.assertTrue(Message.query.filter_by(text="Hello").one())
 
-    # def test_add_message_auth(self):
-    #     # Since we need to change the session to mimic logging in,
-    #     # we need to use the changing-session trick:
-    #     with self.client as c:
+    def test_add_message_auth(self):
+        """Test authorization on add message route"""
+        with self.client as c:
 
-    #         resp = c.post("/messages/new", data={"text": "Hello"}, follow_redirects=True)
+            resp = c.post("/messages/new", data={"text": "Hello"}, follow_redirects=True)
 
-    #         self.assertEqual(resp.status_code, 200)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
 
-
+            self.assertIn("Access unauthorized", html)
 
     def test_delete_message(self):
         """Test functionality of message delete"""
@@ -126,8 +127,22 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
             self.assertIn("TEST REDIRECT DELETE", html)
 
 
+    def test_delete_message_auth(self):
+        """Ensures only message owner can delete message"""
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u2_id
+
+            resp = c.post(f"/messages/{self.m1_id}/delete", follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+
+            self.assertIn("Access unauthorized", html)
+
+
     def test_show_message(self):
-        """Test rendered html of message"""
+        """Test message show page"""
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u1_id
@@ -142,7 +157,7 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
 
         
     def test_like_message(self):
-        """Test like functionality of message"""
+        """Test liking a message functionality"""
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u2_id
@@ -155,7 +170,7 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
 
 
     def test_like_redirect(self):
-        """Test redirect of like message"""
+        """Test redirect after liking a message"""
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u2_id
@@ -168,28 +183,28 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
             self.assertIn("TEST REDIRECT LIKE MESSAGE", html)
 
 
-    # def test_unlike_message(self):
-    #     """Test unlike functionality of message"""
-    #     with self.client as c:
-    #         with c.session_transaction() as sess:
-    #             sess[CURR_USER_KEY] = self.u2_id
+    def test_unlike_message(self):
+        """Test unlike functionality of message"""
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u2_id
             
-    #         resp = c.post(f"/users/unlike/{self.m2_id}")
+            resp = c.post(f"/users/unlike/{self.m1_id}")
 
-    #         self.assertEqual(resp.status_code, 302)
+            self.assertEqual(resp.status_code, 302)
 
-    #         self.assertEqual(resp.location, f"/users/{self.u2_id}/likes")
+            self.assertEqual(resp.location, f"/users/{self.u2_id}/likes")
 
 
-    # def test_unlike_redirect(self):
-    #     """Test redirect of unliking a message"""
-    #     with self.client as c:
-    #         with c.session_transaction() as sess:
-    #             sess[CURR_USER_KEY] = self.u2_id
+    def test_unlike_redirect(self):
+        """Test redirect of unliking a message"""
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u2_id
             
-    #         unlike_resp = c.post(f"/users/unlike/{self.m2_id}", follow_redirects=True)
-    #         html = unlike_resp.get_data(as_text=True)
+            unlike_resp = c.post(f"/users/unlike/{self.m1_id}", follow_redirects=True)
+            html = unlike_resp.get_data(as_text=True)
 
-    #         self.assertEqual(unlike_resp.status_code, 200)
+            self.assertEqual(unlike_resp.status_code, 200)
 
-    #         self.assertIn("TEST REDIRECT UNLIKE MESSAGE", html)
+            self.assertIn("TEST REDIRECT UNLIKE MESSAGE", html)

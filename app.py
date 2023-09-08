@@ -337,6 +337,10 @@ def delete_message(message_id):
 
     msg = Message.query.get_or_404(message_id)
 
+    if not g.user.id == msg.id:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
     for user in msg.liked_users:
         msg.liked_users.remove(user)
 
