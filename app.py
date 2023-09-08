@@ -57,6 +57,7 @@ def do_logout():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
+#TODO: DEFINE delete methods
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
@@ -268,6 +269,7 @@ def delete_user():
 
     Redirect to signup page.
     """
+#TODO: delete in order + loop -> 1. likes, 2.warbles, 3. users
 
     if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
@@ -342,6 +344,7 @@ def delete_message(message_id):
 
 @app.get('/users/<int:user_id>/likes')
 def show_likes(user_id):
+    #docstring
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
@@ -362,19 +365,20 @@ def like_message(likes_id):
     msg = Message.query.get_or_404(likes_id)
 
     if msg.user.id == g.user.id:
-        flash("You cannot like your own warbler", "info")
+        flash("You cannot like your own warbles", "info")
         return redirect("/")
 
     g.user.liked_messages.append(msg)
     db.session.commit()
 
     return redirect(f"/users/{g.user.id}/likes")
-
+# resource => messages
 @app.post('/users/unlike/<int:likes_id>')
 def unlike_message(likes_id):
     """Unlike a message for currently logged-in user
 
     Redirect to current page user is on."""
+    #TODO: impelement ^
 
     if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
