@@ -16,6 +16,7 @@
         {% if msg in g.user.messages %}
           <form method="POST"
           action="/messages/{{ msg.id }}/delete">
+          {{ g.csrf_form.hidden_tag() }}
           <button class="btn btn-outline-danger z-3 position-relative">Delete</button>
           </form>
         {% elif msg in g.user.liked_messages %}
