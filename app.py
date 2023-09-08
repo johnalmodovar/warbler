@@ -57,7 +57,6 @@ def do_logout():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
-#TODO: DEFINE delete methods
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
@@ -275,7 +274,11 @@ def delete_user():
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
+    Message.query.filter_by(user_id=g.user.id).delete()
+
+
     do_logout()
+
 
     db.session.delete(g.user)
     db.session.commit()
@@ -320,7 +323,6 @@ def show_message(message_id):
     msg = Message.query.get_or_404(message_id)
     return render_template('messages/show.html', message=msg)
 
-
 @app.post('/messages/<int:message_id>/delete')
 def delete_message(message_id):
     """Delete a message.
@@ -334,6 +336,10 @@ def delete_message(message_id):
         return redirect("/")
 
     msg = Message.query.get_or_404(message_id)
+
+    for user in msg.liked_users:
+        msg.liked_users.remove(user)
+
     db.session.delete(msg)
     db.session.commit()
 
@@ -378,7 +384,7 @@ def unlike_message(likes_id):
     """Unlike a message for currently logged-in user
 
     Redirect to current page user is on."""
-    #TODO: impelement ^
+    #TODO: impelement ^ (after tests)
 
     if not g.csrf_form.validate_on_submit() or not g.user:
         flash("Access unauthorized.", "danger")
